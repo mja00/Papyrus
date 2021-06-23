@@ -1,0 +1,70 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mja00 <teamnirvana2@gmail.com>
+Date: Wed, 23 Jun 2021 12:25:33 -0400
+Subject: [PATCH] Removing glow squid
+
+
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 323012e5133934b16e666649c2421e67efaa27db..423676f0952d6f4533c83677bf910d526fda0e9d 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1120,6 +1120,11 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+                 this.status.setDescription(new TextComponent(this.motd));
+                 this.status.setVersion(new ServerStatus.Version(SharedConstants.getCurrentVersion().getName(), SharedConstants.getCurrentVersion().getProtocolVersion()));
+                 this.updateStatusIcon(this.status);
++                // Papyrus start
++                LOGGER.error("YOU ARE USING PAPYRUS.");
++                LOGGER.error("SUPPORT WILL NOT BE PROVIDED IF YOU END UP BREAKING THINGS. ");
++                LOGGER.error("THIS IS YOUR ONLY WARNING.");
++                //Papyrus end
+ 
+                 // Spigot start
+                 // Paper start - move done tracking
+diff --git a/src/main/java/net/minecraft/server/commands/SummonCommand.java b/src/main/java/net/minecraft/server/commands/SummonCommand.java
+index 0821cd15071ac10c88f0bcfd869c27cadbe778ba..b66058e204662889ed23d8d58036c14d3f2e2a29 100644
+--- a/src/main/java/net/minecraft/server/commands/SummonCommand.java
++++ b/src/main/java/net/minecraft/server/commands/SummonCommand.java
+@@ -46,6 +46,11 @@ public class SummonCommand {
+ 
+     private static int spawnEntity(CommandSourceStack source, ResourceLocation entity, Vec3 pos, CompoundTag nbt, boolean initialize) throws CommandSyntaxException {
+         BlockPos blockposition = new BlockPos(pos);
++        // Papyrus start - glow squid
++        if (entity.toString().matches("minecraft:glow_squid")) {
++            throw SummonCommand.ERROR_FAILED.create();
++        }
++        // Papyrus end
+ 
+         if (!Level.isInSpawnableBounds(blockposition)) {
+             throw SummonCommand.INVALID_POSITION.create();
+diff --git a/src/main/java/net/minecraft/world/entity/EntityType.java b/src/main/java/net/minecraft/world/entity/EntityType.java
+index ac99265aacd4a28490705e3079ed04023fb1c54a..fffd631327505dd7bf96e4dccb9022eb8765cfdc 100644
+--- a/src/main/java/net/minecraft/world/entity/EntityType.java
++++ b/src/main/java/net/minecraft/world/entity/EntityType.java
+@@ -383,6 +383,11 @@ public class EntityType<T extends Entity> implements EntityTypeTest<Entity, T> {
+             t0.moveTo((double) pos.getX() + 0.5D, (double) pos.getY() + d0, (double) pos.getZ() + 0.5D, Mth.wrapDegrees(world.random.nextFloat() * 360.0F), 0.0F);
+             if (t0 instanceof Mob) {
+                 Mob entityinsentient = (Mob) t0;
++                // Papyrus start - Removing glow squid
++                if (entityinsentient.getType() == EntityType.GLOW_SQUID) {
++                    return null;
++                }
++                // Papyrus end
+ 
+                 entityinsentient.yHeadRot = entityinsentient.getYRot();
+                 entityinsentient.yBodyRot = entityinsentient.getYRot();
+diff --git a/src/main/java/net/minecraft/world/level/NaturalSpawner.java b/src/main/java/net/minecraft/world/level/NaturalSpawner.java
+index 55b937f802ee7066cb13b9a497932038b2905ff0..050c8a3d1e2fb36e471d595cbd39b00fa4d16262 100644
+--- a/src/main/java/net/minecraft/world/level/NaturalSpawner.java
++++ b/src/main/java/net/minecraft/world/level/NaturalSpawner.java
+@@ -571,7 +571,10 @@ public final class NaturalSpawner {
+             this.lastCheckedType = type;
+             MobSpawnSettings.MobSpawnCost biomesettingsmobs_b = NaturalSpawner.getRoughBiome(pos, chunk).getMobSettings().getMobSpawnCost(type);
+ 
+-            if (biomesettingsmobs_b == null) {
++            // Papyrus start - glow squid natural spawn removal
++            if (type == EntityType.GLOW_SQUID) {
++                return false;
++            } else if (biomesettingsmobs_b == null) { // Papyrus end
+                 this.lastCharge = 0.0D;
+                 return true;
+             } else {
